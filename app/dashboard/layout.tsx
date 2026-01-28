@@ -12,8 +12,7 @@ export default function DashboardLayout({
     const pathname = usePathname();
 
     const navItems = [
-        { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
-        { icon: Server, label: 'My VPNs', href: '/dashboard/vpns' },
+        { icon: LayoutDashboard, label: 'Machines', href: '/dashboard' },
         { icon: Download, label: 'Download Apps', href: '/dashboard/download' },
         { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
     ];
@@ -43,8 +42,8 @@ export default function DashboardLayout({
                                     key={item.href}
                                     href={item.href}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                            ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                                            : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
                                         }`}
                                 >
                                     <item.icon className="w-5 h-5" />

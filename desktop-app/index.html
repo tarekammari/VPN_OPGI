@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>OPGI VPN</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #0f172a; /* slate-950 */
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        .header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(15, 23, 42, 0.8);
+            -webkit-app-region: drag;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #22d3ee, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .content {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .status-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .status-circle.connected {
+            border-color: #22c55e;
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+        }
+        .status-circle.connected::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #22c55e;
+            animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes ping {
+            75%, 100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        .lock-icon {
+            width: 40px;
+            height: 40px;
+            fill: #94a3b8;
+            transition: fill 0.3s;
+        }
+        .connected .lock-icon {
+            fill: #22c55e;
+        }
+        .input-group {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: #22d3ee;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-connect {
+            background: linear-gradient(to right, #22d3ee, #3b82f6);
+            color: white;
+        }
+        .btn-connect:hover {
+            opacity: 0.9;
+        }
+        .btn-disconnect {
+            background: rgba(255,255,255,0.1);
+            color: #ef4444;
+            display: none;
+        }
+        .btn-disconnect:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .status-text {
+            color: #94a3b8;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        #ip-display {
+            color: #22d3ee;
+            font-family: monospace;
+            margin-top: 5px;
+            font-size: 16px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">OPGI VPN</div>
+    </div>
+    <div class="content">
+        <div class="status-circle" id="statusCircle">
+            <svg class="lock-icon" viewBox="0 0 24 24">
+                <path d="M12 2C9.243 2 7 4.243 7 7v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7c0-2.757-2.243-5-5-5zm6 10v8H6v-8h12zm-9-3V7c0-1.654 1.346-3 3-3s3 1.346 3 3v2H9z"/>
+            </svg>
+        </div>
+
+        <div class="input-group" id="inputSection">
+            <input type="text" id="authKey" placeholder="Enter Auth Key (e.g. tskey-xyz...)" />
+        </div>
+
+        <button class="btn-connect" id="connectBtn">Connect</button>
+        <button class="btn-disconnect" id="disconnectBtn">Disconnect</button>
+
+        <div class="status-text" id="statusText">Disconnected</div>
+        <div id="ip-display">IP: -</div>
+    </div>
+
+    <script>
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const authKeyInput = document.getElementById('authKey');
+        const statusCircle = document.getElementById('statusCircle');
+        const statusText = document.getElementById('statusText');
+        const ipDisplay = document.getElementById('ip-display');
+        const inputSection = document.getElementById('inputSection');
+
+        connectBtn.addEventListener('click', async () => {
+            const key = authKeyInput.value;
+            if (!key) return alert('Please enter an Auth Key');
+
+            connectBtn.disabled = true;
+            connectBtn.textContent = 'Connecting...';
+            statusText.textContent = 'Authenticating...';
+
+            try {
+                const result = await window.vpnAPI.connect(key);
+                if (result.success) {
+                    // UI Update for Connected State
+                    statusCircle.classList.add('connected');
+                    statusText.textContent = 'Securely Connected';
+                    statusText.style.color = '#22c55e';
+                    ipDisplay.textContent = `IP: ${result.ip}`;
+                    ipDisplay.style.opacity = '1';
+                    
+                    connectBtn.style.display = 'none';
+                    disconnectBtn.style.display = 'block';
+                    inputSection.style.opacity = '0.5';
+                    inputSection.style.pointerEvents = 'none';
+                } else {
+                    alert('Connection Failed: ' + result.error);
+                    resetUI();
+                }
+            } catch (e) {
+                alert('Error: ' + e);
+                resetUI();
+            }
+        });
+
+        disconnectBtn.addEventListener('click', async () => {
+            disconnectBtn.disabled = true;
+            disconnectBtn.textContent = 'Disconnecting...';
+            
+            await window.vpnAPI.disconnect();
+            resetUI();
+        });
+
+        function resetUI() {
+            statusCircle.classList.remove('connected');
+            statusText.textContent = 'Disconnected';
+            statusText.style.color = '#94a3b8';
+            ipDisplay.style.opacity = '0';
+            
+            connectBtn.style.display = 'block';
+            connectBtn.disabled = false;
+            connectBtn.textContent = 'Connect';
+            
+            disconnectBtn.style.display = 'none';
+            disconnectBtn.disabled = false;
+            disconnectBtn.textContent = 'Disconnect';
+
+            inputSection.style.opacity = '1';
+            inputSection.style.pointerEvents = 'auto';
+        }
+    </script>
+</body>
+</html>

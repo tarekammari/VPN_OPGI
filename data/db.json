@@ -1,0 +1,14 @@
+{
+  "machines": [
+    {
+      "id": "61b1c831n",
+      "hostname": "home pc",
+      "os": "windows",
+      "ip": "100.64.0.1",
+      "lastSeen": "Never",
+      "status": "new",
+      "authKey": "tskey-1QKCJQSD0MS"
+    }
+  ],
+  "requests": []
+}
