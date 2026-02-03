@@ -41,7 +41,11 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-gray-500 text-sm">© {new Date().getFullYear()} OPGI VPN. All rights reserved.</p>
+                    <div className="flex flex-col md:flex-row items-center gap-4 text-gray-500 text-sm">
+                        <p>© {new Date().getFullYear()} OPGI VPN. All rights reserved.</p>
+                        <span className="hidden md:inline text-white/10">•</span>
+                        <p>v{process.env.APP_VERSION}</p>
+                    </div>
                     <div className="flex items-center gap-6">
                         {/* Social icons would go here */}
                     </div>
