@@ -102,8 +102,8 @@ export default function AdminDashboard() {
                         <Shield className="w-8 h-8 text-red-500" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold">Admin Command Center</h1>
-                        <p className="text-red-400 font-mono text-sm">ENCRYPTED CONNECTION // SECURE</p>
+                        <h1 className="text-2xl font-bold">Centre de Commandement Admin</h1>
+                        <p className="text-red-400 font-mono text-sm">CONNEXION CHIFFRÉE // SÉCURISÉ</p>
                     </div>
                 </div>
                 <div className="flex gap-4">
@@ -112,13 +112,13 @@ export default function AdminDashboard() {
                         className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition"
                     >
                         {showEncrypted ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-cyan-400" />}
-                        <span className="text-sm">{showEncrypted ? 'Decrypt View' : 'Encrypt View'}</span>
+                        <span className="text-sm">{showEncrypted ? 'Vue Déchiffrée' : 'Vue Chiffrée'}</span>
                     </button>
                     <button
                         onClick={() => { localStorage.removeItem('admin_authenticated'); router.push('/admin'); }}
                         className="px-4 py-2 bg-red-600 rounded-lg font-bold hover:bg-red-700 transition"
                     >
-                        Logout
+                        Déconnexion
                     </button>
                 </div>
             </header>
@@ -133,17 +133,17 @@ export default function AdminDashboard() {
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <Users className="w-5 h-5 text-cyan-400" />
-                                Access Requests
+                                Demandes d'accès
                             </h2>
                             <div className="text-sm text-gray-400 font-mono">
-                                {requests.filter(r => r.status === 'pending').length} PENDING
+                                {requests.filter(r => r.status === 'pending').length} EN ATTENTE
                             </div>
                         </div>
 
                         <div className="space-y-4">
                             {requests.length === 0 && (
                                 <div className="p-8 text-center border-2 border-dashed border-white/10 rounded-xl text-gray-500">
-                                    No requests found.
+                                    Aucune demande trouvée.
                                 </div>
                             )}
                             {requests.map(req => (
@@ -159,10 +159,10 @@ export default function AdminDashboard() {
                                                 {renderData(req.name)}
                                             </h3>
                                             <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${req.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                                                    req.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                                                        'bg-yellow-500/20 text-yellow-400'
+                                                req.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                                                    'bg-yellow-500/20 text-yellow-400'
                                                 }`}>
-                                                {req.status}
+                                                {req.status === 'pending' ? 'En attente' : req.status === 'approved' ? 'Validé' : 'Refusé'}
                                             </span>
                                         </div>
                                         <p className="text-sm text-gray-400 font-mono">{renderData(req.email)}</p>
@@ -174,7 +174,7 @@ export default function AdminDashboard() {
                                             <button
                                                 onClick={() => handleRefuse(req.id)}
                                                 className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg border border-red-500/20 transition"
-                                                title="Refuse"
+                                                title="Refuser"
                                             >
                                                 <X className="w-5 h-5" />
                                             </button>
@@ -183,13 +183,13 @@ export default function AdminDashboard() {
                                                 className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg shadow-lg shadow-green-500/20 transition"
                                             >
                                                 <Check className="w-4 h-4" />
-                                                Approve Access
+                                                Valider
                                             </button>
                                         </div>
                                     )}
                                     {req.status !== 'pending' && (
                                         <div className="text-sm text-gray-500 italic">
-                                            Processed
+                                            Traité
                                         </div>
                                     )}
                                 </motion.div>
@@ -202,13 +202,13 @@ export default function AdminDashboard() {
                         <div className="flex justify-between items-center">
                             <h2 className="text-xl font-bold flex items-center gap-2">
                                 <Server className="w-5 h-5 text-purple-400" />
-                                Network Management
+                                Gestion Réseau
                             </h2>
                             <button
                                 onClick={() => setShowVpnModal(true)}
                                 className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-bold transition"
                             >
-                                <Plus className="w-4 h-4" /> New Node
+                                <Plus className="w-4 h-4" /> Nouveau Nœud
                             </button>
                         </div>
 
@@ -236,16 +236,16 @@ export default function AdminDashboard() {
                         {showVpnModal && (
                             <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
                                 <div className="bg-slate-900 border border-white/10 p-6 rounded-2xl w-96">
-                                    <h3 className="text-lg font-bold mb-4">Deploy New VPN Node</h3>
+                                    <h3 className="text-lg font-bold mb-4">Déployer un nouveau nœud VPN</h3>
                                     <input
                                         value={newVpnName}
                                         onChange={(e) => setNewVpnName(e.target.value)}
-                                        placeholder="Node Name (e.g. Server-01)"
+                                        placeholder="Nom du Nœud (ex: Serveur-01)"
                                         className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 mb-4 text-white"
                                     />
                                     <div className="flex gap-2">
-                                        <button onClick={() => setShowVpnModal(false)} className="flex-1 py-2 bg-white/10 rounded-lg hover:bg-white/20">Cancel</button>
-                                        <button onClick={handleCreateVpn} className="flex-1 py-2 bg-purple-600 rounded-lg hover:bg-purple-500 font-bold">Deploy</button>
+                                        <button onClick={() => setShowVpnModal(false)} className="flex-1 py-2 bg-white/10 rounded-lg hover:bg-white/20">Annuler</button>
+                                        <button onClick={handleCreateVpn} className="flex-1 py-2 bg-purple-600 rounded-lg hover:bg-purple-500 font-bold">Déployer</button>
                                     </div>
                                 </div>
                             </div>
@@ -259,7 +259,7 @@ export default function AdminDashboard() {
                     <div className="bg-black/20 border border-white/10 rounded-2xl p-6">
                         <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
                             <Key className="w-5 h-5 text-purple-400" />
-                            Admin Keys
+                            Clés Admin
                         </h2>
                         <div className="space-y-3 mb-6">
                             {adminKeys.map((k, i) => (
@@ -280,14 +280,14 @@ export default function AdminDashboard() {
                             className="w-full py-3 bg-purple-600/20 border border-purple-500/50 text-purple-300 hover:bg-purple-600 hover:text-white rounded-xl font-bold transition flex items-center justify-center gap-2"
                         >
                             <Download className="w-4 h-4" />
-                            Generate & Download Key
+                            Générer & Télécharger Clé
                         </button>
                     </div>
 
                     <div className="bg-black/20 border border-white/10 rounded-2xl p-6">
                         <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
                             <Lock className="w-5 h-5 text-gray-400" />
-                            System Status
+                            État du Système
                         </h2>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
