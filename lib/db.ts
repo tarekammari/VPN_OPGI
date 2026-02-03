@@ -19,22 +19,40 @@ export interface Request {
     status: 'pending' | 'approved' | 'rejected';
 }
 
+export interface Settings {
+    displayName: string;
+    emailNotification: boolean;
+    reportNotification: boolean;
+}
+
 export interface Database {
     machines: Machine[];
     requests: Request[];
+    settings: Settings;
 }
 
 export function getDb(): Database {
+    const defaultSettings: Settings = {
+        displayName: 'Demo User',
+        emailNotification: true,
+        reportNotification: false
+    };
+
     if (!fs.existsSync(DB_PATH)) {
-        const initial: Database = { machines: [], requests: [] };
+        const initial: Database = { machines: [], requests: [], settings: defaultSettings };
         fs.writeFileSync(DB_PATH, JSON.stringify(initial, null, 2));
         return initial;
     }
     const file = fs.readFileSync(DB_PATH, 'utf-8');
     try {
-        return JSON.parse(file);
+        const data = JSON.parse(file);
+        // Ensure settings exist if reading from older DB version
+        if (!data.settings) {
+            data.settings = defaultSettings;
+        }
+        return data;
     } catch (e) {
-        return { machines: [], requests: [] };
+        return { machines: [], requests: [], settings: defaultSettings };
     }
 }
 

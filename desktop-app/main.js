@@ -35,23 +35,39 @@ app.on('window-all-closed', () => {
     }
 });
 
-// Mock Backend Logic
+// Real Backend Logic
 let isConnected = false;
+const SERVER_URL = 'http://localhost:3000';
 
 ipcMain.handle('connect-vpn', async (event, authKey) => {
-    // Simulate connection delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+        const response = await fetch(`${SERVER_URL}/api/connect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ authKey, action: 'connect' })
+        });
 
-    if (!authKey || authKey.length < 5) {
-        return { success: false, error: 'Invalid Auth Key' };
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            isConnected = true;
+            return { success: true, ip: data.ip, status: data.status };
+        } else {
+            return { success: false, error: data.error || 'Connection refused' };
+        }
+    } catch (e) {
+        return { success: false, error: 'Cannot reach server. Is it running?' };
     }
-
-    isConnected = true;
-    return { success: true, ip: '100.64.0.5', status: 'Connected' };
 });
 
 ipcMain.handle('disconnect-vpn', async () => {
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // In a real app, we might want to notify the server, but for now we just reset local state
+    // Or send a disconnect signal if the server tracks active sessions strictly
+    try {
+        // Optional: Notify server of disconnect
+        // await fetch(`${SERVER_URL}/api/connect`, { ... action: 'disconnect' ... });
+    } catch (e) { }
+
     isConnected = false;
     return { success: true, status: 'Disconnected' };
 });
