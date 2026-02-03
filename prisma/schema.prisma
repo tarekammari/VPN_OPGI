@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String?
+  email     String?   @unique
+  password  String?   // Hashed password
+  role      String    @default("user") // "admin" or "user"
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  machines  Machine[]
+}
+
+model Machine {
+  id        String   @id @default(cuid())
+  hostname  String
+  os        String
+  ip        String   // Virtual IP in VPN mesh (e.g. 100.64.0.x)
+  publicKey String?  // WireGuard Public Key
+  lastSeen  DateTime @default(now())
+  status    String   @default("new") // "connected", "disconnected", "new"
+  
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  authKey   AuthKey? @relation(fields: [authKeyId], references: [id])
+  authKeyId String?  @unique
+}
+
+model AuthKey {
+  id        String   @id @default(cuid())
+  key       String   @unique // The "tskey-XXX" secret
+  active    Boolean  @default(true) // Becomes false after use if one-time
+  createdAt DateTime @default(now())
+  machine   Machine?
+}

@@ -3,24 +3,16 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Shield,
     Monitor,
     Smartphone,
     Globe,
-    MoreVertical,
     Download,
-    CheckCircle,
-    Network,
-    Clock,
-    AlertTriangle,
-    Lock,
     Plus,
     Laptop,
     Server,
     Wifi
 } from 'lucide-react';
-// import { submitRequest, getRequests, getMachines, registerMachine, Machine } from '../../lib/store';
-// Using API types locally or from shared location is better, but defining inline for speed
+
 interface Machine {
     id: string;
     hostname: string;
@@ -37,37 +29,27 @@ export default function DashboardPage() {
     const [newHostname, setNewHostname] = useState('');
     const [newOS, setNewOS] = useState<Machine['os']>('windows');
 
-    // Request Logic (Simulated for now, can move to API too)
-    const [requestStatus, setRequestStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('approved'); // Default approved for demo flow
-    const [userName, setUserName] = useState('');
-    const [userEmail, setUserEmail] = useState('');
-
     const refreshData = async () => {
         try {
             const res = await fetch('/api/machines');
             if (res.ok) {
                 const data = await res.json();
                 setMachines(data);
+            } else if (res.status === 401) {
+                // Redirect if session expired
+                window.location.href = '/admin'; // or /login
             }
         } catch (e) {
             console.error("Failed to fetch machines", e);
         }
     };
 
-    // Poll for updates every 2 seconds to see live status changes
+    // Poll for updates every 5 seconds
     useEffect(() => {
         refreshData();
-        const interval = setInterval(refreshData, 2000);
+        const interval = setInterval(refreshData, 5000);
         return () => clearInterval(interval);
     }, []);
-
-    const handleRequestSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        // await submitRequest(userEmail || 'demo@user.com', userName || 'Demo User');
-        setRequestStatus('pending');
-        // Simulate approval
-        setTimeout(() => setRequestStatus('approved'), 2000);
-    };
 
     const handleRegisterMachine = async () => {
         if (!newHostname) return;
@@ -122,86 +104,12 @@ PersistentKeepalive = 25
         }
     };
 
-    // --- VIEW: Request Access (If not approved) ---
-    if (requestStatus === 'none' || requestStatus === 'pending' || requestStatus === 'rejected') {
-        return (
-            <div className="max-w-2xl mx-auto py-12">
-                <div className="text-center mb-10">
-                    <h1 className="text-3xl font-bold text-white mb-2">Secure Network Access</h1>
-                    <p className="text-gray-400">Request permission from the administrator to join the private mesh.</p>
-                </div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/5 border border-white/10 rounded-2xl p-8 relative overflow-hidden"
-                >
-                    {/* Background Decor */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-
-                    {requestStatus === 'none' && (
-                        <form onSubmit={handleRequestSubmit} className="space-y-6 relative z-10">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
-                                <input
-                                    required
-                                    value={userName}
-                                    onChange={e => setUserName(e.target.value)}
-                                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:border-cyan-500 outline-none"
-                                    placeholder="Your Name"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-                                <input
-                                    required
-                                    type="email"
-                                    value={userEmail}
-                                    onChange={e => setUserEmail(e.target.value)}
-                                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:border-cyan-500 outline-none"
-                                    placeholder="name@company.com"
-                                />
-                            </div>
-                            <button type="submit" className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl transition shadow-lg shadow-cyan-500/20">
-                                Submit Request
-                            </button>
-                        </form>
-                    )}
-
-                    {requestStatus === 'pending' && (
-                        <div className="text-center py-8">
-                            <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Clock className="w-8 h-8 text-yellow-500" />
-                            </div>
-                            <h2 className="text-xl font-bold text-white mb-2">Request Pending</h2>
-                            <p className="text-gray-400 mb-6">Your request has been sent securely to the administrator. Please wait for approval.</p>
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 text-yellow-400 rounded-lg text-sm font-mono border border-yellow-500/20">
-                                STATUS: AWAITING_APPROVAL
-                            </div>
-                        </div>
-                    )}
-
-                    {requestStatus === 'rejected' && (
-                        <div className="text-center py-8">
-                            <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertTriangle className="w-8 h-8 text-red-500" />
-                            </div>
-                            <h2 className="text-xl font-bold text-white mb-2">Request Declined</h2>
-                            <p className="text-gray-400">The administrator has declined your request for VPN access. Please contact support.</p>
-                        </div>
-                    )}
-                </motion.div>
-            </div>
-        );
-    }
-
-    // --- VIEW: Dashboard (If Approved) ---
     return (
         <div className="space-y-8">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">my Machines</h1>
+                    <h1 className="text-3xl font-bold text-white mb-2">My Machines</h1>
                     <p className="text-gray-400">Manage your connected devices and static IPs</p>
                 </div>
                 <button
@@ -307,8 +215,9 @@ PersistentKeepalive = 25
                                                     <span className="capitalize">{machine.os}</span>
                                                 </div>
                                             </td>
+                                            {/* Format date properly as it might come as string from JSON */}
                                             <td className="px-6 py-4 text-gray-500 text-sm">
-                                                {machine.lastSeen}
+                                                {new Date(machine.lastSeen).toLocaleDateString() + " " + new Date(machine.lastSeen).toLocaleTimeString()}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <button

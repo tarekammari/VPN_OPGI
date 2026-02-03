@@ -1,35 +1,51 @@
 import { NextResponse } from 'next/server';
-import { getDb, saveDb } from '../../../lib/db';
+import db from '../../../lib/db';
 
 export async function POST(request: Request) {
     const body = await request.json();
     const { authKey, action } = body;
     // action: 'connect' | 'disconnect' | 'heartbeat'
 
-    const db = getDb();
-    const machine = db.machines.find(m => m.authKey === authKey);
+    if (!authKey) {
+        return NextResponse.json({ success: false, error: 'Missing Auth Key' }, { status: 400 });
+    }
 
-    if (!machine) {
+    // 1. Find the key
+    const validKey = await db.authKey.findUnique({
+        where: { key: authKey },
+        include: { machine: true }
+    });
+
+    if (!validKey || !validKey.machine) {
         return NextResponse.json({ success: false, error: 'Invalid Auth Key' }, { status: 401 });
     }
 
+    const machine = validKey.machine;
+
+    // 2. Update status
+    let newStatus = machine.status;
+    let lastSeen = new Date();
+
     if (action === 'connect') {
-        machine.status = 'connected';
-        machine.lastSeen = 'Just now';
+        newStatus = 'connected';
     } else if (action === 'disconnect') {
-        machine.status = 'disconnected';
+        newStatus = 'disconnected';
     } else if (action === 'heartbeat') {
-        machine.lastSeen = 'Just now';
-        machine.status = 'connected';
+        newStatus = 'connected';
     }
 
-    // Update in DB
-    db.machines = db.machines.map(m => m.id === machine.id ? machine : m);
-    saveDb(db);
+    await db.machine.update({
+        where: { id: machine.id },
+        data: {
+            status: newStatus,
+            lastSeen: lastSeen
+        }
+    });
 
     return NextResponse.json({
         success: true,
         ip: machine.ip,
-        status: machine.status
+        status: newStatus,
+        publicKey: machine.publicKey // Return if needed
     });
 }

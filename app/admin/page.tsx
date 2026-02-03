@@ -1,106 +1,107 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Shield, Key, ArrowRight, Loader2, Lock } from 'lucide-react';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { authenticate } from '../lib/actions';
+import { Shield, Key, Lock, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { validateAdminKey } from '../../lib/store';
 
-export default function AdminLoginPage() {
-    const router = useRouter();
-    const [key, setKey] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError('');
-
-        // Simulate validation delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        if (validateAdminKey(key)) {
-            // In real app, set a cookie. Here we just redirect.
-            localStorage.setItem('admin_authenticated', 'true');
-            router.push('/admin/dashboard');
-        } else {
-            setError('Invalid Security Key. Access Denied.');
-        }
-        setIsLoading(false);
-    };
+export default function AdminLogin() {
+    const [errorMessage, dispatch] = useActionState(authenticate, undefined);
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-950">
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
             {/* Background Effects */}
-            <div className="absolute inset-0 z-0">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-900/10 rounded-full blur-[100px] animate-pulse" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-900/10 rounded-full blur-[100px] animate-pulse delay-1000" />
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 rounded-full blur-[120px]" />
             </div>
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative z-10 w-full max-w-md p-8 bg-black/40 backdrop-blur-xl border border-red-500/20 rounded-2xl shadow-2xl"
-            >
+            <div className="w-full max-w-md relative z-10">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-red-600 to-purple-800 mb-4 shadow-lg shadow-red-900/30">
-                        <Lock className="w-8 h-8 text-white" />
-                    </div>
-                    <h2 className="text-3xl font-bold text-white mb-2">Admin Access</h2>
-                    <p className="text-red-400 font-mono text-sm">SECURE_LEVEL_3 // RESTRICTED</p>
+                    <motion.div
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="w-20 h-20 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-2xl shadow-cyan-500/20"
+                    >
+                        <Shield className="w-10 h-10 text-white" />
+                    </motion.div>
+                    <h1 className="text-3xl font-bold text-white mb-2">Admin Access</h1>
+                    <p className="text-gray-400">Secure Gateway // Authorized Personnel Only</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2 font-mono">ENTER SECURITY KEY</label>
-                        <div className="relative">
-                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                            <input
-                                type="password"
-                                required
-                                value={key}
-                                onChange={(e) => setKey(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-black/50 border border-red-500/30 rounded-lg text-white font-mono placeholder-gray-700 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
-                                placeholder="XXXX-XXXX-XXXX-XXXX"
-                            />
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl"
+                >
+                    <form action={dispatch} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Email Identity</label>
+                            <div className="relative">
+                                <Key className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    required
+                                    placeholder="admin@opgi.dz"
+                                    className="w-full pl-12 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all placeholder:text-gray-600"
+                                />
+                            </div>
                         </div>
-                        {error && (
-                            <motion.p
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-red-500 text-xs mt-2 font-mono"
-                            >
-                                [ERROR] {error}
-                            </motion.p>
-                        )}
-                    </div>
 
-                    <button
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-red-600/80 hover:bg-red-600 text-white font-bold tracking-wider hover:shadow-lg hover:shadow-red-900/20 transition-all focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-70"
-                    >
-                        {isLoading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                VERIFYING...
-                            </>
-                        ) : (
-                            <>
-                                AUTHENTICATE
-                                <ArrowRight className="w-5 h-5" />
-                            </>
-                        )}
-                    </button>
-                </form>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">Passphrase</label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
+                                <input
+                                    type="password"
+                                    name="password"
+                                    required
+                                    minLength={6}
+                                    placeholder="••••••••••••"
+                                    className="w-full pl-12 pr-4 py-3 bg-black/20 border border-white/10 rounded-xl text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all placeholder:text-gray-600"
+                                />
+                            </div>
+                        </div>
 
-                <div className="mt-6 text-center">
-                    <p className="text-xs text-gray-600 font-mono">
-                        System ID: {Math.random().toString(36).substr(2, 6).toUpperCase()}
+                        {errorMessage && (
+                            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                                {errorMessage}
+                            </div>
+                        )}
+
+                        <LoginButton />
+                    </form>
+                </motion.div>
+
+                <div className="mt-8 text-center">
+                    <p className="text-gray-500 text-sm font-mono">
+                        SYSTEM_ID: OPGI_VPN_CORE_v1.0
                     </p>
                 </div>
-            </motion.div>
+            </div>
         </div>
+    );
+}
+
+function LoginButton() {
+    const { pending } = useFormStatus();
+
+    return (
+        <button
+            type="submit"
+            disabled={pending}
+            className="w-full py-3 bg-gradient-to-r from-cyan-600 to-blue-700 hover:from-cyan-500 hover:to-blue-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-cyan-900/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+            {pending ? (
+                'Authenticating...'
+            ) : (
+                <>
+                    Access System <ArrowRight className="w-5 h-5" />
+                </>
+            )}
+        </button>
     );
 }
