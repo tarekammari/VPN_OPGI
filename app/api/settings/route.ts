@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDb, saveDb } from '../../../lib/db';
+import { getDb, saveDb } from '../../../lib/json-db';
 
 export async function GET() {
     const db = getDb();
